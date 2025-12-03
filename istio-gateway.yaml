@@ -13,20 +13,31 @@ spec:
         name: http
       hosts:
         - "*"
----
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: nginx-vs
-  namespace: aditya
+  name: nginx-route
+  namespace: nginxad
 spec:
   hosts:
-    - "*"
+  - "*"
   gateways:
-    - nginx-gateway
+  - nginx-gateway
   http:
-    - route:
-        - destination:
-            host: nginx-service
-            port:
-              number: 80
+  - match:
+    - uri:
+        prefix: "/hello"
+    route:
+    - destination:
+        host: nginx-svc
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: nginx-svc
+        port:
+          number: 80
+
