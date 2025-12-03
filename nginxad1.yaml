@@ -1,3 +1,36 @@
+# ------------------------------
+# ConfigMap for custom nginx.conf
+# ------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {}
+
+    http {
+      server {
+        listen 80;
+        server_name _;
+
+        # Default page
+        location / {
+          return 200 "Welcome to Nginx via Istio Ingress!\n";
+        }
+
+        # Custom API endpoint
+        location /hello {
+          add_header Content-Type application/json;
+          return 200 '{"message": "Hello from Nginx API!"}';
+        }
+      }
+    }
+
+---
+# ------------------------------
+# Deployment
+# ------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,7 +50,19 @@ spec:
         image: nginx:latest
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: nginx-config-vol
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config-vol
+        configMap:
+          name: nginx-config
+
 ---
+# ------------------------------
+# Service (NodePort)
+# ------------------------------
 apiVersion: v1
 kind: Service
 metadata:
